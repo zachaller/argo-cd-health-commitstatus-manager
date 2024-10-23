@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/cespare/xxhash/v2"
 	"k8s.io/klog/v2"
-	"net/url"
 	"os"
 	"os/exec"
 	"strconv"
@@ -99,19 +98,9 @@ func updateCommitStatuses(appLister listers.ApplicationLister) {
 			continue
 		}
 
-		repoURL, err := url.Parse(app.Spec.SourceHydrator.DrySource.RepoURL)
-		if err != nil {
-			panic(err)
-		}
-
 		stuff := &AggregateStuff{
 			app: app,
 		}
-
-		// Get owner and repo name from the GitHub URL
-		// FIXME: support more than just GitHub
-		owner := repoURL.Path[1 : strings.Index(repoURL.Path[1:], "/")+1]
-		repo := repoURL.Path[strings.LastIndex(repoURL.Path, "/")+1:]
 
 		state := promoter_v1alpha1.CommitPhasePending
 		if app.Status.Health.Status == health.HealthStatusHealthy {
@@ -132,13 +121,8 @@ func updateCommitStatuses(appLister listers.ApplicationLister) {
 				},
 			},
 			Spec: promoter_v1alpha1.CommitStatusSpec{
-				RepositoryReference: &promoter_v1alpha1.Repository{
-					Owner: owner,
-					Name:  repo,
-					ScmProviderRef: promoter_v1alpha1.NamespacedObjectReference{
-						Name:      "scmprovider-example",
-						Namespace: "argocd",
-					},
+				RepositoryReference: promoter_v1alpha1.ObjectReference{
+					Name: "argocon-demo",
 				},
 				Sha:         app.Status.Sync.Revision,
 				Name:        commitStatusName,
@@ -241,14 +225,6 @@ func hash(data []byte) string {
 }
 
 func updateAggregatedStatus(kubeClient client.Client, revision string, repo string, sha string, state promoter_v1alpha1.CommitStatusPhase, desc string) error {
-
-	repoURL, err := url.Parse(repo)
-	if err != nil {
-		panic(err)
-	}
-	owner := repoURL.Path[1 : strings.Index(repoURL.Path[1:], "/")+1]
-	repository := repoURL.Path[strings.LastIndex(repoURL.Path, "/")+1:]
-
 	commitStatusName := revision + "/health"
 	resourceName := strings.ReplaceAll(commitStatusName, "/", "-") + "-" + hash([]byte(repo))
 
@@ -261,13 +237,8 @@ func updateAggregatedStatus(kubeClient client.Client, revision string, repo stri
 			},
 		},
 		Spec: promoter_v1alpha1.CommitStatusSpec{
-			RepositoryReference: &promoter_v1alpha1.Repository{
-				Owner: owner,
-				Name:  repository,
-				ScmProviderRef: promoter_v1alpha1.NamespacedObjectReference{
-					Name:      "scmprovider-example",
-					Namespace: "argocd",
-				},
+			RepositoryReference: promoter_v1alpha1.ObjectReference{
+				Name: "argocon-demo",
 			},
 			Sha:         sha,
 			Name:        commitStatusName,
@@ -278,7 +249,7 @@ func updateAggregatedStatus(kubeClient client.Client, revision string, repo stri
 	}
 
 	currentCommitStatus := promoter_v1alpha1.CommitStatus{}
-	err = kubeClient.Get(context.Background(), client.ObjectKey{Namespace: "argocd", Name: resourceName}, &currentCommitStatus)
+	err := kubeClient.Get(context.Background(), client.ObjectKey{Namespace: "argocd", Name: resourceName}, &currentCommitStatus)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			panic(err)
