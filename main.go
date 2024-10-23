@@ -126,13 +126,8 @@ func updateCommitStatuses(appLister listers.ApplicationLister) {
 					},
 				},
 				Spec: promoter_v1alpha1.CommitStatusSpec{
-					RepositoryReference: &promoter_v1alpha1.Repository{
-						Owner: owner,
-						Name:  repo,
-						ScmProviderRef: promoter_v1alpha1.NamespacedObjectReference{
-							Name:      "scmprovider-sample",
-							Namespace: "default",
-						},
+					RepositoryReference: promoter_v1alpha1.ObjectReference{
+						Name: "argocon-demo",
 					},
 					Sha:         app.Status.SourceHydrator.LastSuccessfulOperation.HydratedSHA,
 					Name:        "production/hcap",
