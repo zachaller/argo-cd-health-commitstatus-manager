@@ -5,7 +5,7 @@ go 1.22.0
 toolchain go1.22.5
 
 require (
-	github.com/argoproj-labs/gitops-promoter v0.0.0-20241010165917-f0689b719100
+	github.com/argoproj-labs/gitops-promoter v0.0.0-20241023002625-fad5678db616
 	github.com/argoproj/argo-cd/v2 v2.13.0
 	github.com/argoproj/gitops-engine v0.7.1-0.20240917171920-72bcdda3f0a5
 	k8s.io/apimachinery v0.31.1
