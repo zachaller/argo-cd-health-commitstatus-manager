@@ -103,7 +103,7 @@ func updateCommitStatuses(appLister listers.ApplicationLister) {
 		}
 
 		state := promoter_v1alpha1.CommitPhasePending
-		if app.Status.Health.Status == health.HealthStatusHealthy {
+		if app.Status.Health.Status == health.HealthStatusHealthy && app.Status.Sync.Status == v1alpha1.SyncStatusCodeSynced {
 			state = promoter_v1alpha1.CommitPhaseSuccess
 		} else if app.Status.Health.Status == health.HealthStatusDegraded {
 			state = promoter_v1alpha1.CommitPhaseFailure
@@ -157,7 +157,7 @@ func updateCommitStatuses(appLister listers.ApplicationLister) {
 		stuff.changed = true // Should check if there is a no-op
 
 		key := objKey{
-			repo:     app.Spec.SourceHydrator.GetSyncSource().RepoURL,
+			repo:     strings.TrimRight(app.Spec.SourceHydrator.GetSyncSource().RepoURL, ".git"),
 			revision: app.Spec.SourceHydrator.GetSyncSource().TargetRevision,
 		}
 		aggregates[key] = append(aggregates[key], stuff)
